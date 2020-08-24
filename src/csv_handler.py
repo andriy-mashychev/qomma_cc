@@ -1,4 +1,5 @@
 import os
+import re
 from csv import DictReader
 
 class DataTable:
@@ -28,3 +29,32 @@ class DataTable:
     def __read_table_content(self):
         with open(self._abs_file_path) as csv_file:
             self._rows = [row for row in DictReader(csv_file, skipinitialspace=True)]
+
+class CSVFilesFinder():
+    """DirectoryReader identifies CSV files located in a specified folder."""
+
+    CSV_FILE_EXT_RE = re.compile(r".+\.csv$", re.IGNORECASE)
+
+    def __init__(self, dir_path):
+        if os.path.exists(dir_path) and os.path.isdir(dir_path):
+            self._abs_dir_path = os.path.abspath(dir_path)
+        else:
+            raise RuntimeError("Please provide a valid directory path")
+
+        self.__find_csv_files()
+
+    def no_files_available(self):
+        if self._csv_files:
+            return False
+        else:
+            return True
+
+    def print_files_info(self):
+        print(f"{len(self._csv_files)} tables found:")
+        if (self._csv_files):
+            for filename in sorted(self._csv_files): print(filename)
+        print()
+
+    def __find_csv_files(self):
+        files = os.listdir(self._abs_dir_path)
+        self._csv_files = [f for f in files if self.CSV_FILE_EXT_RE.match(f)]
