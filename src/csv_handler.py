@@ -58,3 +58,30 @@ class CSVFilesFinder():
     def __find_csv_files(self):
         files = os.listdir(self._abs_dir_path)
         self._csv_files = [f for f in files if self.CSV_FILE_EXT_RE.match(f)]
+
+class CSVDataBase(CSVFilesFinder):
+    """
+    CSVDataBase represents a set of data tables corresponding to the CSV files
+    located in a specified folder. It relies on its parent class capabilities
+    when it comes to locating CSV files.
+    """
+
+    _DEFAULT_DATA_TABLE_CLASS = DataTable
+
+    def __init__(self, dir_path, data_table_cls=_DEFAULT_DATA_TABLE_CLASS):
+        super(CSVDataBase, self).__init__(dir_path)
+
+        self._data_table_cls = data_table_cls
+        self._database = {}
+        self.__create_database()
+
+    def get_data_table(self, table_name):
+        return self._database.get(table_name)
+
+    def __create_database(self):
+        for f in self._csv_files:
+            data_table = self.__instantiate_data_table(f)
+            self._database[data_table.name()] = data_table
+
+    def __instantiate_data_table(self, file_name):
+        return self._data_table_cls(os.path.join(self._abs_dir_path, file_name))
